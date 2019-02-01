@@ -1,27 +1,44 @@
 ; Demonstrate the stack
 
-mov ah, 0x0e
+mov ah, 0x0e               ; Set tele-type mode
 
 mov bp, 0x8000             ; Set base of stack. This is slightly above where the BIOS loads
 mov sp, bp                 ; the boot sector - so it won't override anything important
 
-push 'A'                   ; Push characters on the stack for later use.
-push 'B'                   ; These are pushed as 16-bit values, meaning the most significant byte
-push 'C'                   ; will be added by the assembler as 0x00
+push 'H'                   ; Push characters on the stack for later use.
+push 'E'
+push 'L'
+push 'L'
+push 'O'
+push ' '
+push 'W'
+push 'O'
+push 'R'
+push 'L'
+push 'D'
+push '!'
+push termination_char
 
-pop bx                     ; Can only pop 16-bit valies, so pop to bx
-mov al, bl                 ; and copy bl ( the 8-bit character is stored in the least significant part )
-int 0x10                   ; into al and print al
-
-pop bx                     ; Pop the next value
-mov al, bl
-int 0x10                   ; print it
-
-mov al, [0x7ffe]           ; To prove the stack grows downwards from bp,
-                           ; fetch the chat at 0x8000 - 0x02 ( i.e. 16-bits )
-int 0x10                   ; and print it
+call print
 
 jmp $
 
+print:
+    pop bx
+    cmp bx, termination_char
+    jne print_char
+    ret   
+
+print_char:
+    mov al, bl
+    int 0x10
+    jmp print
+
+termination_char: db 0x00
+
+hello_world:
+    db 'Hello World!',0
+
 times 510-($-$$) db 0
 dw 0xAA55
+
